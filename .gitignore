@@ -1,0 +1,38 @@
+# Eclipse workspace created when this folder is opened as a workspace.
+# The CubeIDE project lives under examples/stm32_h5.
+.metadata/
+
+# OS and editor scrap
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+
+# Python host tools
+__pycache__/
+__init__.py
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Host unit-test build trees
+**/test/build/
+
+# Local per-library scratch boards (not for git)
+**/TASKBOARD.md
+
+# Compiler and linker products, wherever a build is run
+*.o
+*.obj
+*.d
+*.su
+*.cyclo
+*.elf
+*.hex
+*.bin
+*.map
+*.list
+*.lst
+*.launch

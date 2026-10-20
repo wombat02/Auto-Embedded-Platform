@@ -1,0 +1,8 @@
+Portable libraries, host tools, and the STM32 example glue in this
+repository are under the MIT license in LICENSE.
+
+ST HAL, CMSIS, and Microsoft Azure RTOS (ThreadX / USBX) are obtained by
+generating code from examples/stm32_h5/stm32_h5.ioc. They are not part of
+this repository and keep the license files that CubeMX ships with them.
+
+See docs/LICENSING.md and examples/stm32_h5/BRINGUP.md.

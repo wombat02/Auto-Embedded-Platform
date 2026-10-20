@@ -1,0 +1,43 @@
+# STM32CubeIDE build output.
+Debug/
+Release/
+
+# CubeMX / CubeIDE regenerate these. Only aep_*, log.*, the .ioc, and docs stay
+# tracked. Local copies remain on disk after git rm --cached. See BRINGUP.md.
+Drivers/
+Middlewares/
+USBX/
+AZURE_RTOS/
+Core/Startup/
+.settings/
+.project
+.cproject
+.mxproject
+*.ld
+
+# Generated Core sources/headers except aep_* and log.*
+Core/Src/app_threadx.c
+Core/Src/fdcan.c
+Core/Src/gpio.c
+Core/Src/main.c
+Core/Src/stm32h5xx_hal_msp.c
+Core/Src/stm32h5xx_hal_timebase_tim.c
+Core/Src/stm32h5xx_it.c
+Core/Src/syscalls.c
+Core/Src/sysmem.c
+Core/Src/system_stm32h5xx.c
+Core/Src/tx_initialize_low_level.S
+Core/Src/usb.c
+Core/Inc/app_threadx.h
+Core/Inc/fdcan.h
+Core/Inc/gpio.h
+Core/Inc/main.h
+Core/Inc/stm32h5xx_hal_conf.h
+Core/Inc/stm32h5xx_it.h
+Core/Inc/tx_user.h
+Core/Inc/usb.h
+
+# CubeMX backups
+*.bak
+backup/
+*Backup*/

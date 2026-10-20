@@ -1,0 +1,5 @@
+# Host tools. Install Kvaser CANlib from kvaser.com; it is not a pip package.
+pyserial
+python-can
+can-isotp
+textual
