@@ -1,5 +1,6 @@
 #include "ucp_cfg.h"
 
+#include "aep_log.h"
 #include "store.h"
 #include "ucp_protocol.h"
 
@@ -278,6 +279,7 @@ static void op_apply(uint16_t corr)
 {
 	if (!s_bound || (s_bind.rt == NULL))
 	{
+		AEP_LOGW("ucp_cfg: apply not bound");
 		send_status(corr, UCP_CFG_OP_APPLY, (uint8_t)UCP_SERVICE_STATUS_BUSY);
 		return;
 	}
@@ -288,6 +290,7 @@ static void op_apply(uint16_t corr)
 	if (comp_runtime_apply(s_bind.rt, s_bind.specs, *s_bind.spec_count, s_bind.ctx_ptrs,
 						   s_bind.ctx_sizes, s_bind.ctx_count) != 0)
 	{
+		AEP_LOGE("ucp_cfg: apply failed");
 		send_status(corr, UCP_CFG_OP_APPLY, (uint8_t)UCP_SERVICE_STATUS_BUSY);
 		return;
 	}
@@ -305,11 +308,13 @@ static void op_save(uint16_t corr)
 
 	if (encode_slots_blob(blob, sizeof(blob), &blen) != 0)
 	{
+		AEP_LOGW("ucp_cfg: save encode fail");
 		send_status(corr, UCP_CFG_OP_SAVE, (uint8_t)UCP_SERVICE_STATUS_BUSY);
 		return;
 	}
 	if (store_set(STORE_KEY_SLOTS, blob, blen) != 0)
 	{
+		AEP_LOGE("ucp_cfg: save store_set fail");
 		send_status(corr, UCP_CFG_OP_SAVE, (uint8_t)UCP_SERVICE_STATUS_BUSY);
 		return;
 	}
@@ -320,6 +325,7 @@ static void op_save(uint16_t corr)
 	}
 	if (store_commit() != 0)
 	{
+		AEP_LOGE("ucp_cfg: save commit fail");
 		send_status(corr, UCP_CFG_OP_SAVE, (uint8_t)UCP_SERVICE_STATUS_BUSY);
 		return;
 	}
@@ -335,11 +341,13 @@ static void op_load(uint16_t corr)
 
 	if (store_get(STORE_KEY_SLOTS, blob, sizeof(blob), &blen) != 0)
 	{
+		AEP_LOGW("ucp_cfg: load missing slots");
 		send_status(corr, UCP_CFG_OP_LOAD, (uint8_t)UCP_SERVICE_STATUS_INVALID_ARG);
 		return;
 	}
 	if (decode_slots_blob(blob, blen) != 0)
 	{
+		AEP_LOGE("ucp_cfg: load decode fail");
 		send_status(corr, UCP_CFG_OP_LOAD, (uint8_t)UCP_SERVICE_STATUS_INVALID_ARG);
 		return;
 	}

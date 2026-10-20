@@ -30,6 +30,7 @@ flowchart TB
 
 | Directory | Why it exists |
 | --- | --- |
+| [`aep_log/`](../aep_log/README.md) | Compile-gated Info/Warn/Error; glue implements `aep_port_log` (default level WARN) |
 | [`sig/`](../sig/README.md) | Typed signal ids, TLV codec, slot table — no RTOS/HAL |
 | [`ucp/`](../ucp/README.md) | Framed packets, parser, discovery/session — portable across links |
 | [`ucp_tlm/`](../ucp_tlm/README.md) | UCP app `0x20`: live TLV + directory (incl. catalog revision / publish) |

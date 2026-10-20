@@ -1,9 +1,10 @@
 CC ?= gcc
-CFLAGS ?= -std=c11 -Wall -Wextra -Werror -I../include -DUCP_LOG_ENABLE=0
+CFLAGS ?= -std=c11 -Wall -Wextra -Werror -I../include -I../../aep_log/include -DAEP_LOG_ENABLE=0
 BUILD := build
 
 UCP_SRCS := ../src/ucp_protocol.c ../src/ucp_parser.c ../src/ucp_port.c \
-	../src/ucp_session.c ../src/ucp_session_debug.c ../src/ucp_xfer.c
+	../src/ucp_session.c ../src/ucp_session_debug.c ../src/ucp_xfer.c \
+	../../aep_log/src/aep_log_port.c
 
 .PHONY: all test clean
 

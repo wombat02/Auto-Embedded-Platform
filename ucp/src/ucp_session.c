@@ -10,6 +10,7 @@
 
 #include "ucp_session.h"
 
+#include "aep_log.h"
 #include "ucp_log.h"
 #include "ucp_port.h"
 #include "ucp_session_debug.h"
@@ -96,21 +97,21 @@ static void session_set_state(ucp_session_t *session, ucp_link_state_t new_state
 	{
 	case UCP_LINK_STATE_DISCOVERING:
 		ucp_port_on_link_event(UCP_APP_LINK_EVENT_DISCOVERING);
-		UCP_LOGI("UCP: link DISCOVERING");
+		AEP_LOGD("UCP: link DISCOVERING");
 		break;
 	case UCP_LINK_STATE_HANDSHAKING:
-		UCP_LOGI("UCP: link HANDSHAKING");
+		AEP_LOGD("UCP: link HANDSHAKING");
 		break;
 	case UCP_LINK_STATE_READY:
 		ucp_port_on_link_event(UCP_APP_LINK_EVENT_LINK_READY);
-		UCP_LOGI("UCP: link READY");
+		AEP_LOGI("UCP: link READY");
 		break;
 	case UCP_LINK_STATE_TIMEOUT:
 		ucp_port_on_link_event(UCP_APP_LINK_EVENT_TIMEOUT);
-		UCP_LOGI("UCP: link TIMEOUT");
+		AEP_LOGW("UCP: link TIMEOUT");
 		break;
 	case UCP_LINK_STATE_DOWN:
-		UCP_LOGD("UCP: link DOWN");
+		AEP_LOGD("UCP: link DOWN");
 		break;
 	default:
 		break;
@@ -131,7 +132,7 @@ static void session_log_negotiated_app_entry(uint8_t app_id, uint16_t version, u
 				   (unsigned)app_id,
 				   (unsigned)version,
 				   (unsigned)roles);
-	UCP_LOGI(msg);
+	AEP_LOGD(msg);
 }
 
 static void session_log_negotiated_apps(const ucp_session_t *session)
@@ -149,7 +150,7 @@ static void session_log_negotiated_apps(const ucp_session_t *session)
 					   sizeof(hdr),
 					   "negotiated_apps=%u",
 					   (unsigned)session->negotiated_app_count);
-		UCP_LOGI(hdr);
+		AEP_LOGD(hdr);
 	}
 
 	for (i = 0u; i < session->negotiated_app_count; i++)
@@ -162,6 +163,7 @@ static void session_log_negotiated_apps(const ucp_session_t *session)
 static bool send_control_pkt(uint8_t pkt_id, const void *payload, uint8_t payload_len)
 {
 	ucp_pkt_t pkt = {0};
+	bool ok;
 
 	ucp_session_trace_tx_ctrl(pkt_id, payload_len);
 	pkt.app_id = (uint8_t)UCP_APP_ID_CONTROL;
@@ -171,7 +173,12 @@ static bool send_control_pkt(uint8_t pkt_id, const void *payload, uint8_t payloa
 	{
 		memcpy(pkt.payload, payload, payload_len);
 	}
-	return ucp_port_send(&pkt);
+	ok = ucp_port_send(&pkt);
+	if (!ok)
+	{
+		AEP_LOGW("UCP: control send failed");
+	}
+	return ok;
 }
 
 static void send_status(uint8_t pkt_id, ucp_status_code_t code, uint8_t ref_app, uint8_t ref_pkt, uint16_t detail)
@@ -330,7 +337,7 @@ static void session_log_cap_parse_fail(const ucp_pkt_t *pkt)
 				   "UCP: cap parse fail pkt=0x%02X len=%u",
 				   (unsigned)pkt->pkt_id,
 				   (unsigned)pkt->payload_len);
-	UCP_LOGI(msg);
+	AEP_LOGW(msg);
 }
 
 static bool store_peer_capability(ucp_session_t *session, const ucp_ctrl_capability_payload_t *cap)
@@ -345,7 +352,7 @@ static bool store_peer_capability(ucp_session_t *session, const ucp_ctrl_capabil
 					(uint8_t)UCP_APP_ID_CONTROL,
 					(uint8_t)UCP_CTRL_PKT_ID_CAPABILITY_DISCOVERY_REQ,
 					cap->ucp_proto_version);
-		UCP_LOGI("UCP: UCP version mismatch");
+		AEP_LOGE("UCP: UCP version mismatch");
 		return false;
 	}
 
@@ -411,7 +418,7 @@ static bool store_peer_capability(ucp_session_t *session, const ucp_ctrl_capabil
 								   (unsigned)local_apps[i].app_id,
 								   (unsigned)local_apps[i].role_flags,
 								   (unsigned)cap->entries[j].role_flags);
-					UCP_LOGI(warn_msg);
+					AEP_LOGW(warn_msg);
 				}
 			}
 			break;
@@ -435,7 +442,7 @@ static bool store_peer_capability(ucp_session_t *session, const ucp_ctrl_capabil
 					   "UCP: no app matches local=%u peer=%u (check ver/roles)",
 					   (unsigned)local_count,
 					   (unsigned)cap->entry_count);
-		UCP_LOGI(warn);
+		AEP_LOGW(warn);
 	}
 
 	{
@@ -446,7 +453,7 @@ static bool store_peer_capability(ucp_session_t *session, const ucp_ctrl_capabil
 					   (unsigned)local_count,
 					   (unsigned)cap->entry_count,
 					   (unsigned)session->negotiated_app_count);
-		UCP_LOGI(summary);
+		AEP_LOGD(summary);
 	}
 	session->peer_capability_received = true;
 	session->cap_exchange_in_flight = false;
@@ -459,7 +466,7 @@ static bool store_peer_capability(ucp_session_t *session, const ucp_ctrl_capabil
 					(uint8_t)UCP_APP_ID_CONTROL,
 					0u,
 					0u);
-		UCP_LOGI("UCP: app capability warning");
+		AEP_LOGW("UCP: app capability warning");
 		/* Phase 1: continue to READY when UCP version matches. */
 	}
 
@@ -564,7 +571,7 @@ static void maybe_resync_from_hello(ucp_session_t *session, uint32_t now_ms, uin
 		if (from_hello_req || peer_epoch_changed)
 		{
 			session_start_handshaking(session, now_ms, true);
-			UCP_LOGI("UCP: peer restart detected, renegotiating");
+			AEP_LOGI("UCP: peer restart detected, renegotiating");
 		}
 		return;
 	}
@@ -654,7 +661,7 @@ void ucp_session_init(ucp_session_t *session)
 	session->local_hw_id = ucp_port_get_local_hw_id();
 	session->negotiated_ucp_version = ucp_port_get_protocol_version();
 	reset_to_discovering(session, ucp_port_get_time_ms());
-	UCP_LOGD("UCP: session init");
+	AEP_LOGD("UCP: session init");
 }
 
 void ucp_session_tick(ucp_session_t *session, uint32_t now_ms)
@@ -694,7 +701,7 @@ void ucp_session_tick(ucp_session_t *session, uint32_t now_ms)
 							   (unsigned long)now_ms,
 							   (unsigned long)session->last_rx_ms,
 							   (unsigned long)ucp_elapsed_ms(now_ms, session->last_rx_ms));
-				UCP_LOGI(msg);
+				AEP_LOGW(msg);
 			}
 			session_set_state(session, UCP_LINK_STATE_TIMEOUT);
 		}
@@ -720,7 +727,7 @@ void ucp_session_tick(ucp_session_t *session, uint32_t now_ms)
 		{
 			session->last_hello_tx_ms = now_ms;
 			send_hello(session, (uint8_t)UCP_CTRL_PKT_ID_DEVICE_HELLO_REQ);
-			UCP_LOGD("UCP: tx HELLO_REQ");
+			AEP_LOGD("UCP: tx HELLO_REQ");
 		}
 		return;
 	}
@@ -748,19 +755,19 @@ void ucp_session_tick(ucp_session_t *session, uint32_t now_ms)
 						if (ucp_elapsed_ge_ms(now_ms, session->handshake_enter_ms, UCP_CAP_PEER_LISTEN_MS))
 						{
 							request_capability_exchange(session, now_ms);
-							UCP_LOGD("UCP: tx CAP_REQ after peer listen");
+							AEP_LOGD("UCP: tx CAP_REQ after peer listen");
 						}
 					}
 					else if (ucp_elapsed_ge_ms(now_ms, session->last_cap_req_tx_ms, UCP_CAP_REQ_RETRY_MS))
 					{
 						request_capability_exchange(session, now_ms);
-						UCP_LOGD("UCP: retry CAP_REQ");
+						AEP_LOGD("UCP: retry CAP_REQ");
 					}
 				}
 				break;
 			case UCP_HS_STEP_LINK_READY_REQ:
 				send_link_ready(session, (uint8_t)UCP_CTRL_PKT_ID_LINK_READY_REQ, session->negotiated_ucp_version);
-				UCP_LOGD("UCP: retry LINK_READY_REQ");
+				AEP_LOGD("UCP: retry LINK_READY_REQ");
 				break;
 			default:
 				break;
@@ -775,7 +782,7 @@ void ucp_session_tick(ucp_session_t *session, uint32_t now_ms)
 		{
 			session->last_keepalive_tx_ms = now_ms;
 			send_keepalive();
-			UCP_LOGD("UCP: tx KEEPALIVE");
+			AEP_LOGD("UCP: tx KEEPALIVE");
 		}
 	}
 }
@@ -794,7 +801,7 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 
 	now_ms = ucp_port_get_time_ms();
 
-	UCP_LOGD("UCP: rx app/pkt");
+	AEP_LOGD("UCP: rx app/pkt");
 
 	if (pkt->app_id != (uint8_t)UCP_APP_ID_CONTROL)
 	{
@@ -818,7 +825,7 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 	switch (pkt->pkt_id)
 	{
 	case UCP_CTRL_PKT_ID_KEEPALIVE:
-		UCP_LOGD("UCP: rx KEEPALIVE");
+		AEP_LOGD("UCP: rx KEEPALIVE");
 		return;
 
 	case UCP_CTRL_PKT_ID_DEVICE_HELLO_REQ:
@@ -834,7 +841,7 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 		memcpy(&hello, pkt->payload, sizeof(hello));
 		if (hello_is_local_echo(&hello))
 		{
-			UCP_LOGI("UCP: ignore HELLO_REQ from local HW_ID (UART echo)");
+			AEP_LOGD("UCP: ignore HELLO_REQ from local HW_ID (UART echo)");
 			return;
 		}
 		session->peer_hw_id = (ucp_hw_id_t)hello.HW_ID;
@@ -846,7 +853,7 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 						(uint8_t)UCP_APP_ID_CONTROL,
 						pkt->pkt_id,
 						hello.ucp_proto_version);
-			UCP_LOGI("UCP: peer hello UCP version mismatch");
+			AEP_LOGE("UCP: peer hello UCP version mismatch");
 			return;
 		}
 		{
@@ -857,7 +864,7 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 			 */
 			maybe_resync_from_hello(session, now_ms, hello.session_nonce, true);
 			send_hello(session, (uint8_t)UCP_CTRL_PKT_ID_DEVICE_HELLO_RSP);
-			UCP_LOGD("UCP: rx HELLO_REQ, tx HELLO_RSP");
+			AEP_LOGD("UCP: rx HELLO_REQ, tx HELLO_RSP");
 		}
 		session_mark_progress(session, now_ms);
 		return;
@@ -875,7 +882,7 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 		memcpy(&hello, pkt->payload, sizeof(hello));
 		if (hello_is_local_echo(&hello))
 		{
-			UCP_LOGI("UCP: ignore HELLO_RSP from local HW_ID (UART echo)");
+			AEP_LOGD("UCP: ignore HELLO_RSP from local HW_ID (UART echo)");
 			return;
 		}
 		session->peer_hw_id = (ucp_hw_id_t)hello.HW_ID;
@@ -887,12 +894,12 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 						(uint8_t)UCP_APP_ID_CONTROL,
 						pkt->pkt_id,
 						hello.ucp_proto_version);
-			UCP_LOGI("UCP: peer hello rsp UCP version mismatch");
+			AEP_LOGE("UCP: peer hello rsp UCP version mismatch");
 			return;
 		}
 		maybe_resync_from_hello(session, now_ms, hello.session_nonce, false);
 		session_mark_progress(session, now_ms);
-		UCP_LOGD("UCP: rx HELLO_RSP");
+		AEP_LOGD("UCP: rx HELLO_RSP");
 		return;
 
 	case UCP_CTRL_PKT_ID_CAPABILITY_DISCOVERY_REQ:
@@ -920,28 +927,28 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 		}
 		if (session_try_complete_pending_link_ready(session))
 		{
-			UCP_LOGD("UCP: rx CAP_REQ, completed deferred READY");
+			AEP_LOGD("UCP: rx CAP_REQ, completed deferred READY");
 			return;
 		}
 		if (session->state == UCP_LINK_STATE_READY)
 		{
-			UCP_LOGD("UCP: rx CAP_REQ, tx CAP_RSP");
+			AEP_LOGD("UCP: rx CAP_REQ, tx CAP_RSP");
 			return;
 		}
 		if (session->hs_step == UCP_HS_STEP_LINK_READY_REQ)
 		{
-			UCP_LOGD("UCP: rx CAP_REQ, tx CAP_RSP only");
+			AEP_LOGD("UCP: rx CAP_REQ, tx CAP_RSP only");
 			return;
 		}
 		/* Progress rule: receiving a valid CAP_REQ is enough to move handshake forward. */
 		session->hs_step = UCP_HS_STEP_LINK_READY_REQ;
 		session->last_hs_tx_ms = now_ms;
 		send_link_ready(session, (uint8_t)UCP_CTRL_PKT_ID_LINK_READY_REQ, session->negotiated_ucp_version);
-		UCP_LOGD("UCP: rx CAP_REQ, tx CAP_RSP + LINK_READY_REQ");
+		AEP_LOGD("UCP: rx CAP_REQ, tx CAP_RSP + LINK_READY_REQ");
 		return;
 
 	case UCP_CTRL_PKT_ID_CAPABILITY_DISCOVERY_RSP:
-		UCP_LOGI("UCP: rx CAP_RSP");
+		AEP_LOGD("UCP: rx CAP_RSP");
 		if (!parse_capability(pkt, &cap))
 		{
 			session_log_cap_parse_fail(pkt);
@@ -960,13 +967,13 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 		session_mark_progress(session, now_ms);
 		if (session_try_complete_pending_link_ready(session))
 		{
-			UCP_LOGD("UCP: rx CAP_RSP, completed deferred READY");
+			AEP_LOGD("UCP: rx CAP_RSP, completed deferred READY");
 			return;
 		}
 		session->hs_step = UCP_HS_STEP_LINK_READY_REQ;
 		session->last_hs_tx_ms = now_ms;
 		send_link_ready(session, (uint8_t)UCP_CTRL_PKT_ID_LINK_READY_REQ, session->negotiated_ucp_version);
-		UCP_LOGD("UCP: rx CAP_RSP, tx LINK_READY_REQ");
+		AEP_LOGD("UCP: rx CAP_RSP, tx LINK_READY_REQ");
 		return;
 
 	case UCP_CTRL_PKT_ID_LINK_READY_REQ:
@@ -1009,7 +1016,7 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 
 			if (first_lr)
 			{
-				UCP_LOGI("UCP: defer READY until capability exchange");
+				AEP_LOGD("UCP: defer READY until capability exchange");
 				ucp_session_trace(session, "H-LR", "defer READY (LINK_READY_REQ, no peer cap)");
 			}
 			else
@@ -1031,7 +1038,7 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 		}
 		send_link_ready(session, (uint8_t)UCP_CTRL_PKT_ID_LINK_READY_RSP, link_ready.negotiated_ucp_version);
 		enter_ready(session, link_ready.negotiated_ucp_version);
-		UCP_LOGD("UCP: rx LINK_READY_REQ, tx LINK_READY_RSP");
+		AEP_LOGD("UCP: rx LINK_READY_REQ, tx LINK_READY_RSP");
 		return;
 
 	case UCP_CTRL_PKT_ID_LINK_READY_RSP:
@@ -1065,7 +1072,7 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 
 			if (first_lr)
 			{
-				UCP_LOGI("UCP: defer READY until capability exchange");
+				AEP_LOGD("UCP: defer READY until capability exchange");
 				ucp_session_trace(session, "H-LR", "defer READY (LINK_READY_RSP, no peer cap)");
 			}
 			session->link_ready_pending = true;
@@ -1078,7 +1085,7 @@ void ucp_session_on_packet(ucp_session_t *session, const ucp_pkt_t *pkt)
 			return;
 		}
 		enter_ready(session, link_ready.negotiated_ucp_version);
-		UCP_LOGD("UCP: rx LINK_READY_RSP");
+		AEP_LOGD("UCP: rx LINK_READY_RSP");
 		return;
 
 	default:

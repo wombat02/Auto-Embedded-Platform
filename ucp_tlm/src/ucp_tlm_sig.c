@@ -1,5 +1,6 @@
 #include "ucp_tlm_sig.h"
 
+#include "aep_log.h"
 #include "sig_catalog.h"
 #include "sig_tlv.h"
 #include "ucp_protocol.h"
@@ -307,6 +308,7 @@ static void tlm_on_rx(const ucp_pkt_t *pkt)
 	rsp[2] = opcode;
 	if (dir_len == 0u)
 	{
+		AEP_LOGE("ucp_tlm: directory build fail");
 		rsp[3] = (uint8_t)UCP_SERVICE_STATUS_BACKEND_ERROR;
 		rsp_len = 4u;
 		(void)ucp_send_pkt(UCP_TLM_SIG_APP_ID, (uint8_t)UCP_SERVICE_PKT_ID_RSP, rsp, rsp_len);
@@ -314,6 +316,7 @@ static void tlm_on_rx(const ucp_pkt_t *pkt)
 	}
 	if (!ucp_xfer_offer(&token, s_dir_buf, dir_len))
 	{
+		AEP_LOGW("ucp_tlm: directory xfer offer fail");
 		rsp[3] = (uint8_t)UCP_SERVICE_STATUS_BUSY;
 		rsp_len = 4u;
 		(void)ucp_send_pkt(UCP_TLM_SIG_APP_ID, (uint8_t)UCP_SERVICE_PKT_ID_RSP, rsp, rsp_len);

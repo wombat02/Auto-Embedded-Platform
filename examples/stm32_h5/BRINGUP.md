@@ -17,13 +17,14 @@ Do not enable USART2 in the `.ioc`. PD5/PD6 stay free; `aep_kline_phy.c` owns US
 | File | Change |
 | --- | --- |
 | `USBX/App/app_usbx_device.h` | Set `UX_DEVICE_APP_THREAD_STACK_SIZE` to **4096** (1 KiB overflowed into the USBX pool during UCP poll + TX). |
-| `.project` | Restore linked resources `portable/{sig,ucp,ucp_tlm,ucp_cfg,comp,store,vcom,vcom_diag}` with `PARENT-2-PROJECT_LOC/...` (CubeMX often drops them). |
+| `.project` | Restore linked resources `portable/{aep_log,sig,ucp,ucp_tlm,ucp_cfg,comp,store,vcom,vcom_diag}` with `PARENT-2-PROJECT_LOC/...` (CubeMX often drops them). |
 | Include paths (Debug and Release) | Add repo-root `*/include` trees and `vcom_diag/third_party/iso14229`. |
-| Compiler defines | `-DUDS_SYS=0 -DUDS_TP_ISOTP_C` |
+| Compiler defines | `-DUDS_SYS=0 -DUDS_TP_ISOTP_C`. Optional log knobs: `-DAEP_LOG_LEVEL=AEP_LOG_LEVEL_WARN` (default) or `-DAEP_LOG_ENABLE=0`. |
 
 Include paths:
 
 ```
+../../../aep_log/include
 ../../../sig/include
 ../../../ucp/include
 ../../../ucp_tlm/include
@@ -34,6 +35,8 @@ Include paths:
 ../../../vcom_diag/include
 ../../../vcom_diag/third_party/iso14229
 ```
+
+Link `aep_log/src/aep_log_port.c` only if glue does not provide a strong `aep_port_log` (the example does, in `aep_ucp_port.c`).
 
 The `.ioc` already sets MSP stack `0x1000`, USBX app pool `24*1024`, FDCAN classic 500 kbit/s (prescaler 5, seg1 7, seg2 2), and `HSE_EN` (PE2) default high. Linker flash is the full 512 KiB device (no NVS region).
 
@@ -148,20 +151,25 @@ In `HAL_PCD_MspInit`, after Cube enables the USB IRQ:
 
 ### `USBX/App/app_usbx_device.c` — UCP owns CDC
 
-Include `aep_ucp_usb.h`. In the device app thread loop, after CDC is ready and before ASCII log drain:
+Include `aep_ucp_usb.h`. In the device app thread loop, after CDC is ready and **before** the ASCII log-ring drain:
 
 ```c
     if (aep_ucp_usb_owns_cdc())
     {
       aep_ucp_usb_poll();
-      tx_thread_sleep(1);
-      continue;
+      /* Skip ASCII only while READY — keep draining for PuTTY bring-up. */
+      if (aep_ucp_usb_ready())
+      {
+        tx_thread_sleep(1);
+        continue;
+      }
     }
+    /* … existing log_ring → cdc_acm_write drain … */
 ```
 
 Also keep the PMA layout and `HAL_PCD_Start` that this board needs (EP0, CDC CMD, bulk IN/OUT). See the working `app_ux_device_thread_entry` in a local generate for the full block.
 
-`aep_ucp_usb_init()` (from the com thread) sets `owns_cdc`. While true, do not ASCII-write that CDC instance from this thread.
+`aep_ucp_usb_init()` (from the com thread) sets `owns_cdc` so this thread runs `aep_ucp_usb_poll()`. ASCII log drain stays on this same thread and is skipped only while the UCP session is READY (so `ucp_host` / TUI see a clean binary stream). Do not ASCII-write CDC from any other thread. `USBX/` is gitignored — keep this paste in your local generate.
 
 ## 4. Build and smoke
 

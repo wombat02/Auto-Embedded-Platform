@@ -10,6 +10,7 @@
 
 #include "ucp_session_debug.h"
 
+#include "aep_log.h"
 #include "ucp_log.h"
 #include "ucp_port.h"
 
@@ -40,7 +41,7 @@ void ucp_session_trace(const ucp_session_t *session, const char *hypothesis_id, 
 				   (unsigned)session->link_ready_need_rsp,
 				   (unsigned)session->local_session_nonce,
 				   (unsigned)session->peer_session_nonce);
-	UCP_LOGD(msg);
+	AEP_LOGD(msg);
 }
 
 void ucp_session_trace_timeout_check(const ucp_session_t *session,
@@ -65,7 +66,7 @@ void ucp_session_trace_timeout_check(const ucp_session_t *session,
 				   (unsigned long)limit_ms,
 				   (unsigned)(tick_now_ms < last_progress_ms),
 				   (unsigned)will_timeout);
-	UCP_LOGD(msg);
+	AEP_LOGD(msg);
 }
 
 void ucp_session_trace_tx_ctrl(uint8_t pkt_id, uint8_t payload_len)
@@ -77,7 +78,7 @@ void ucp_session_trace_tx_ctrl(uint8_t pkt_id, uint8_t payload_len)
 				   "[UCP-TR][H-TX] enqueue ctrl pkt=0x%02X len=%u",
 				   (unsigned)pkt_id,
 				   (unsigned)payload_len);
-	UCP_LOGD(msg);
+	AEP_LOGD(msg);
 }
 
 #endif /* UCP_DEBUG_VERBOSE */

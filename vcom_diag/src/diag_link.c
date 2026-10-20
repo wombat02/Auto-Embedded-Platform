@@ -11,6 +11,8 @@
 #endif
 #include "iso14229.h"
 
+#include "aep_log.h"
+
 #include <stdarg.h>
 #include <string.h>
 
@@ -87,6 +89,7 @@ int isotp_user_send_can(const uint32_t arbitration_id, const uint8_t *data, cons
 
 	if ((owner == NULL) || (owner->cfg.core == NULL) || (data == NULL) || (size > 8u))
 	{
+		AEP_LOGW("diag: ISO-TP send bad args");
 		return ISOTP_RET_ERROR;
 	}
 
@@ -115,6 +118,7 @@ bool diag_link_init(diag_link_t *link, const diag_link_cfg_t *cfg)
 
 	if ((link == NULL) || (cfg == NULL) || (cfg->core == NULL) || (cfg->now_ms == NULL))
 	{
+		AEP_LOGW("diag: link init bad args");
 		return false;
 	}
 
@@ -125,6 +129,7 @@ bool diag_link_init(diag_link_t *link, const diag_link_cfg_t *cfg)
 	err = UDSClientTpISOTpCInit(&link->tp, cfg->phys_resp_id, cfg->phys_req_id, cfg->func_req_id);
 	if (err != UDS_OK)
 	{
+		AEP_LOGE("diag: ISO-TP init fail");
 		s_active = NULL;
 		return false;
 	}
@@ -135,6 +140,7 @@ bool diag_link_init(diag_link_t *link, const diag_link_cfg_t *cfg)
 
 	if (UDSClientInit(&link->client) != UDS_OK)
 	{
+		AEP_LOGE("diag: UDS client init fail");
 		s_active = NULL;
 		return false;
 	}
@@ -174,6 +180,7 @@ bool diag_link_subscribe_rx(diag_link_t *link)
 	if (!vcom_rx_subscribe(link->cfg.core, link->cfg.bus, link->cfg.phys_resp_id, 0x7FFu,
 						   diag_rx_cb, link))
 	{
+		AEP_LOGW("diag: RX subscribe fail");
 		return false;
 	}
 	link->subscribed = 1u;

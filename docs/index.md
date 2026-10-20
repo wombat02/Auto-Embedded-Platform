@@ -20,6 +20,7 @@ Each library README links to its overview, porting notes, and the STM32 example 
 
 | Library | Entry |
 | --- | --- |
+| `aep_log` | [../aep_log/README.md](../aep_log/README.md) |
 | `sig` | [../sig/README.md](../sig/README.md) |
 | `ucp` | [../ucp/README.md](../ucp/README.md) · [../ucp/docs/README.md](../ucp/docs/README.md) |
 | `ucp_tlm` | [../ucp_tlm/README.md](../ucp_tlm/README.md) |

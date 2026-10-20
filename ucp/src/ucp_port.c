@@ -97,12 +97,6 @@ UCP_WEAK void ucp_port_peer_turnaround_delay(void)
 {
 }
 
-UCP_WEAK void ucp_port_log(ucp_log_level_t level, const char *msg)
-{
-	(void)level;
-	(void)msg;
-}
-
 UCP_WEAK ucp_hw_id_t ucp_port_get_local_hw_id(void)
 {
 	if ((s_ops != NULL) && (s_ops->get_hw_id != NULL))

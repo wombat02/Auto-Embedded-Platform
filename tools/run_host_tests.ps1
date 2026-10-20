@@ -19,10 +19,11 @@ gcc -std=c11 -Wall -Wextra -Werror -Isig/include `
 & sig/test/build/test_sig.exe
 
 Write-Host '=== ucp ==='
-gcc -std=c11 -Wall -Wextra -Werror -Iucp/include -DUCP_LOG_ENABLE=0 `
+gcc -std=c11 -Wall -Wextra -Werror -Iucp/include -Iaep_log/include -DAEP_LOG_ENABLE=0 `
     -o ucp/test/build/test_ucp_roles.exe `
     ucp/src/ucp_protocol.c ucp/src/ucp_parser.c ucp/src/ucp_port.c `
-    ucp/src/ucp_session.c ucp/src/ucp_session_debug.c ucp/test/test_ucp_roles.c
+    ucp/src/ucp_session.c ucp/src/ucp_session_debug.c aep_log/src/aep_log_port.c `
+    ucp/test/test_ucp_roles.c
 & ucp/test/build/test_ucp_roles.exe
 
 Write-Host '=== vcom ==='
@@ -33,10 +34,10 @@ gcc -std=c11 -Wall -Wextra -Werror -Ivcom/include `
 
 Write-Host '=== vcom_diag ==='
 gcc -std=c11 -Wall -Wextra -Wno-unused-parameter `
-    -Ivcom_diag/include -Ivcom/include -Ivcom_diag/third_party/iso14229 `
-    -DUDS_SYS=0 -DUDS_TP_ISOTP_C `
+    -Ivcom_diag/include -Ivcom/include -Iaep_log/include -Ivcom_diag/third_party/iso14229 `
+    -DUDS_SYS=0 -DUDS_TP_ISOTP_C -DAEP_LOG_ENABLE=0 `
     -o vcom_diag/test/build/test_diag_link.exe `
-    vcom/src/vcom_core.c vcom_diag/src/diag_link.c `
+    vcom/src/vcom_core.c vcom_diag/src/diag_link.c aep_log/src/aep_log_port.c `
     vcom_diag/third_party/iso14229/iso14229.c vcom_diag/test/test_diag_link.c
 & vcom_diag/test/build/test_diag_link.exe
 

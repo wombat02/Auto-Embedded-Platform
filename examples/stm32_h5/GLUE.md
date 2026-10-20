@@ -13,7 +13,7 @@ main / clocks / GPIO / USB PCD / FDCAN MX   (Cube generate + USER CODE paste)
         |
    aep_* glue (this folder's Core — tracked)
         |
-   sig | ucp | ucp_tlm | ucp_cfg | comp | store | vcom | vcom_diag
+   aep_log | sig | ucp | ucp_tlm | ucp_cfg | comp | store | vcom | vcom_diag
         |
    tools/ucp_host.py , tools/ucp_cfg.py , tools/pt_gen_*.py , tools/demo_tui.py
 ```
@@ -30,7 +30,8 @@ main / clocks / GPIO / USB PCD / FDCAN MX   (Cube generate + USER CODE paste)
 | `Core/Src/aep_cluster_mod.c` | Sig → CAN1 `0x301` | [comp](../../comp/docs/PORTING.md) |
 | `Core/Src/aep_dash_mod.c` | CAN1 dash → Tier B + pack ads | [sig catalog](../../sig/docs/CATALOG.md) |
 | `Core/Src/aep_store_port.c` | RAM `store_port_*` (demo only) | [store](../../store/docs/PORTING.md) |
-| `Core/Src/aep_ucp_port.c` | Strong `ucp_port_*`. Apps: xfer, tlm, cfg | [ucp](../../ucp/docs/PORTING.md), [ucp_tlm](../../ucp_tlm/docs/PORTING.md), [ucp_cfg](../../ucp_cfg/docs/PORTING.md) |
+| `Core/Src/aep_ucp_port.c` | Strong `ucp_port_*` + `aep_port_log`. Apps: xfer, tlm, cfg | [ucp](../../ucp/docs/PORTING.md), [aep_log](../../aep_log/docs/PORTING.md), [ucp_tlm](../../ucp_tlm/docs/PORTING.md), [ucp_cfg](../../ucp_cfg/docs/PORTING.md) |
+| `Core/Src/log.c` | USB log ring (`logi`/`logw`/`loge`) — sink for `aep_port_log` | [aep_log](../../aep_log/README.md) |
 | `Core/Src/aep_fdcan_phy.c` | FDCAN HAL → `vcom_can_phy_t` | [vcom](../../vcom/docs/PORTING.md) |
 | `Core/Src/aep_kline_phy.c` | USART2 + `LIN_NSLP` → `vcom_kline_phy_t` | [vcom](../../vcom/docs/PORTING.md) |
 | `Core/Src/aep_ucp_usb.c` | CDC ↔ `ucp_session`: forever OUT RX; poll/TX on USBX app thread | [ucp](../../ucp/docs/PORTING.md) |

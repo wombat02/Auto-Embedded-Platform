@@ -1,8 +1,9 @@
 /*
  * Example log ring (USB CDC drain). Glue only — not a portable library.
+ * Guard must not collide with portable aep_log.h (AEP_LOG_H_).
  */
-#ifndef AEP_LOG_H_
-#define AEP_LOG_H_
+#ifndef AEP_EXAMPLE_LOG_H_
+#define AEP_EXAMPLE_LOG_H_
 
 #include <stdint.h>
 #include <stdio.h>
@@ -37,4 +38,4 @@ void log_write(log_level_t level, const char *fmt, ...);
 #define logw(...) log_write(LOG_LEVEL_WARN, __VA_ARGS__)
 #define loge(...) log_write(LOG_LEVEL_ERROR, __VA_ARGS__)
 
-#endif /* AEP_LOG_H_ */
+#endif /* AEP_EXAMPLE_LOG_H_ */

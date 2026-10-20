@@ -1,41 +1,41 @@
 #ifndef UCP_LOG_H_
 #define UCP_LOG_H_
 
-#include <stdint.h>
+/*
+ * Compatibility shim. New code should include aep_log.h and use AEP_LOG*.
+ * Logging is owned by the shared aep_log package (aep_port_log).
+ */
 
-#ifndef UCP_LOG_ENABLE
-#define UCP_LOG_ENABLE 1
-#endif
-
-#define UCP_LOG_LEVEL_DEBUG 0
-#define UCP_LOG_LEVEL_INFO 1
+#include "aep_log.h"
 
 #ifndef UCP_DEBUG_VERBOSE
 #define UCP_DEBUG_VERBOSE 0
 #endif
 
+/* Legacy names → aep_log */
+#ifndef UCP_LOG_ENABLE
+#define UCP_LOG_ENABLE AEP_LOG_ENABLE
+#endif
+
+#define UCP_LOG_LEVEL_DEBUG AEP_LOG_LEVEL_DEBUG
+#define UCP_LOG_LEVEL_INFO AEP_LOG_LEVEL_INFO
+#define UCP_LOG_LEVEL_WARN AEP_LOG_LEVEL_WARN
+#define UCP_LOG_LEVEL_ERROR AEP_LOG_LEVEL_ERROR
+
 #ifndef UCP_LOG_LEVEL
-#define UCP_LOG_LEVEL UCP_LOG_LEVEL_INFO
+#define UCP_LOG_LEVEL AEP_LOG_LEVEL
 #endif
 
-typedef enum
-{
-	UCP_LOG_DEBUG = 0,
-	UCP_LOG_INFO = 1
-} ucp_log_level_t;
+typedef aep_log_level_t ucp_log_level_t;
 
-void ucp_port_log(ucp_log_level_t level, const char *msg);
+#define UCP_LOG_DEBUG AEP_LOG_DEBUG
+#define UCP_LOG_INFO AEP_LOG_INFO
+#define UCP_LOG_WARN AEP_LOG_WARN
+#define UCP_LOG_ERROR AEP_LOG_ERROR
 
-#if (UCP_LOG_ENABLE) && (UCP_LOG_LEVEL <= UCP_LOG_LEVEL_DEBUG)
-#define UCP_LOGD(msg) ucp_port_log(UCP_LOG_DEBUG, (msg))
-#else
-#define UCP_LOGD(msg) ((void)0)
-#endif
-
-#if (UCP_LOG_ENABLE) && (UCP_LOG_LEVEL <= UCP_LOG_LEVEL_INFO)
-#define UCP_LOGI(msg) ucp_port_log(UCP_LOG_INFO, (msg))
-#else
-#define UCP_LOGI(msg) ((void)0)
-#endif
+#define UCP_LOGD(msg) AEP_LOGD(msg)
+#define UCP_LOGI(msg) AEP_LOGI(msg)
+#define UCP_LOGW(msg) AEP_LOGW(msg)
+#define UCP_LOGE(msg) AEP_LOGE(msg)
 
 #endif /* UCP_LOG_H_ */

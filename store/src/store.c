@@ -4,6 +4,8 @@
  */
 #include "store.h"
 
+#include "aep_log.h"
+
 #include <string.h>
 
 #define STORE_MAGIC 0xAE50u
@@ -172,6 +174,7 @@ int store_init(void)
 	if ((store_port_region_size(&s_region) != 0) ||
 		(s_region < (2u * (STORE_HDR_SIZE + 64u))))
 	{
+		AEP_LOGE("store: init region fail");
 		return -1;
 	}
 
@@ -308,14 +311,17 @@ int store_commit(void)
 		}
 		if (store_port_erase(off, s_region / 2u) != 0)
 		{
+			AEP_LOGE("store: commit erase fail");
 			return -1;
 		}
 		if (store_port_write(off, &h, sizeof(h)) != 0)
 		{
+			AEP_LOGE("store: commit hdr write fail");
 			return -1;
 		}
 		if ((prog > 0u) && (store_port_write(off + STORE_HDR_SIZE, blob, prog) != 0))
 		{
+			AEP_LOGE("store: commit blob write fail");
 			return -1;
 		}
 	}

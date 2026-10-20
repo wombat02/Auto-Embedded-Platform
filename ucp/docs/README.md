@@ -9,13 +9,13 @@ Portable UCP provides a transport/session core for any MCU/RTOS. Platform UART/U
 - `ucp_session.*` — discovery/handshake/ready state machine
 - `ucp_port.*` — weak defaults + platform integration contract
 - `ucp_xfer.*` — transport pull/push transfer channel (APP `0x01`)
-- `ucp_log.h` — compile-time logging controls
+- `ucp_log.h` — thin shim to shared [`aep_log`](../../aep_log/README.md)
 - `ucp_types.h` — shared payload and device-ID types
 
 ## Recommended default build settings
 
-- `UCP_LOG_ENABLE=1`
-- `UCP_LOG_LEVEL=UCP_LOG_LEVEL_INFO`
+- `AEP_LOG_ENABLE=1`
+- `AEP_LOG_LEVEL=AEP_LOG_LEVEL_WARN` (Info/Debug compile out; see [`aep_log`](../../aep_log/README.md))
 - `UCP_DEBUG_VERBOSE=0`
 
 ## Index

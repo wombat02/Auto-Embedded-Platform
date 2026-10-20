@@ -22,6 +22,7 @@ Product firmware should copy the portable trees and implement the same port hook
 
 | Portable module | Contract | Example glue |
 | --- | --- | --- |
+| [`aep_log`](../../aep_log/README.md) | [PORTING](../../aep_log/docs/PORTING.md) | `aep_port_log` in `Core/Src/aep_ucp_port.c` → `logi`/`logw`/`loge` |
 | [`sig`](../../sig/README.md) | [PORTING](../../sig/docs/PORTING.md) · [catalog](../../sig/docs/CATALOG.md) | `Core/Src/aep_app.c` binds and snapshots the table |
 | [`ucp`](../../ucp/README.md) | [PORTING](../../ucp/docs/PORTING.md) · [full guide](../../ucp/docs/UCP_PORTING_GUIDE.md) | `Core/Src/aep_ucp_port.c`, `Core/Src/aep_ucp_usb.c` |
 | [`ucp_tlm`](../../ucp_tlm/README.md) | [PORTING](../../ucp_tlm/docs/PORTING.md) | `g_ucp_tlm_sig_app_vtable` registered in `aep_ucp_port.c` |

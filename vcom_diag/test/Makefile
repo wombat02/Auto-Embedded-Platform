@@ -1,10 +1,12 @@
 CC ?= gcc
 CFLAGS ?= -std=c11 -Wall -Wextra -Wno-unused-parameter -I../include -I../../vcom/include \
-	-I../third_party/iso14229 -DUDS_SYS=0 -DUDS_TP_ISOTP_C
+	-I../../aep_log/include -I../third_party/iso14229 \
+	-DUDS_SYS=0 -DUDS_TP_ISOTP_C -DAEP_LOG_ENABLE=0
 BUILD := build
 
 SRCS := ../../vcom/src/vcom_core.c \
 	../src/diag_link.c \
+	../../aep_log/src/aep_log_port.c \
 	../third_party/iso14229/iso14229.c \
 	test_diag_link.c
 

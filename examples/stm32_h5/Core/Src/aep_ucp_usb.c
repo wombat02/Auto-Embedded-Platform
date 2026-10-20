@@ -373,7 +373,7 @@ bool aep_ucp_usb_ready(void)
 
 bool aep_ucp_usb_owns_cdc(void)
 {
-	/* Once inited, CDC is UCP-only — never ASCII (prevents forever-RX race). */
+	/* Once inited, USBX app thread must run UCP poll on this CDC. */
 	return s_inited;
 }
 

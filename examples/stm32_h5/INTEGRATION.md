@@ -26,6 +26,7 @@ Leave every other product pin unconfigured. Do not copy a full product `.ioc` in
 Include paths (Debug and Release) after generate:
 
 ```
+../../../aep_log/include
 ../../../sig/include
 ../../../ucp/include
 ../../../ucp_tlm/include
@@ -42,7 +43,7 @@ Compile `iso14229.c` with `-DUDS_SYS=0 -DUDS_TP_ISOTP_C`. Host tests under each 
 ## After flash
 
 - LED ~1 Hz blink (from `tx_app_thread_entry`)
-- CDC ACM enumerates; open the port for ASCII logs until UCP owns CDC, or run `python tools/ucp_host.py --port COMx`
+- CDC ACM enumerates; open the port in a serial terminal for ASCII logs while UCP is not READY (baud is ignored on USB CDC). Use `python tools/ucp_host.py --port COMx` / the TUI for a live session (ASCII drain pauses while READY).
 - Mock PT dual-bus demo (2CH Kvaser): see [DEMO_PT.md](DEMO_PT.md) and `tools/run_pt_demo.ps1`
   - CH0 ↔ CAN0: `pt_gen_a`/`pt_gen_b` + UDS PID ECU; board parser + PID client
   - CH1 ↔ CAN1: cluster `0x301`; optional dash `0x401`/`0x402` via `ucp_cfg.py`

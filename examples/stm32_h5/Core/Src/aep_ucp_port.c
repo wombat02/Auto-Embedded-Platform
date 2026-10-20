@@ -3,6 +3,7 @@
  *
  * Time: ThreadX ticks. Send: aep_ucp_usb.
  * Apps: ucp_xfer (route only), ucp_tlm (0x20), ucp_cfg (0x71).
+ * Log: strong aep_port_log → USB ring (logi/logw/loge).
  * Firmware leaves ops NULL and links these strong symbols instead of
  * ucp_port_set_ops() used by host tests.
  *
@@ -10,14 +11,16 @@
  */
 #include "aep_ucp_port.h"
 
+#include "aep_log.h"
 #include "aep_ucp_usb.h"
 #include "log.h"
 #include "ucp_cfg.h"
 #include "ucp_port.h"
 #include "ucp_tlm_sig.h"
 #include "ucp_xfer.h"
-#include "ucp_log.h"
 #include "tx_api.h"
+
+#include <string.h>
 
 /* Index 0 = xfer (route/tick only; omitted from CAP descriptors). */
 static ucp_app_vtable_t s_app_registry[3];
@@ -152,8 +155,36 @@ void ucp_port_on_link_event(ucp_app_link_event_t event)
 	}
 }
 
-void ucp_port_log(ucp_log_level_t level, const char *msg)
+void aep_port_log(aep_log_level_t level, const char *msg, size_t len)
 {
-	(void)level;
-	logi("%s", msg);
+	char buf[LOG_MSG_SIZE];
+	size_t n;
+
+	if ((msg == NULL) || (len == 0u))
+	{
+		return;
+	}
+
+	n = len;
+	if (n >= sizeof(buf))
+	{
+		n = sizeof(buf) - 1u;
+	}
+	memcpy(buf, msg, n);
+	buf[n] = '\0';
+
+	switch (level)
+	{
+	case AEP_LOG_ERROR:
+		loge("%s", buf);
+		break;
+	case AEP_LOG_WARN:
+		logw("%s", buf);
+		break;
+	case AEP_LOG_DEBUG:
+	case AEP_LOG_INFO:
+	default:
+		logi("%s", buf);
+		break;
+	}
 }

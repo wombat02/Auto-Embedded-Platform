@@ -25,6 +25,7 @@ flowchart TB
     sig["sig — catalog · TLV · slots"]
     comp["comp — module runtime"]
     store["store — keyed NVS blobs"]
+    alog["aep_log — Warn/Error facade"]
 
     subgraph vehicle [Vehicle layer]
       vcom["vcom — CAN schedule · PHY seams"]
@@ -52,6 +53,11 @@ flowchart TB
   diag --> vcom
   vcom --> can
   vcom --> kline
+  ucp -.-> alog
+  comp -.-> alog
+  store -.-> alog
+  ucfg -.-> alog
+  diag -.-> alog
 ```
 
 Board bring-up (HAL, ThreadX, USBX) stays outside the portable trees. The STM32H523 example shows how to wire the seams; product firmware copies the libraries and implements the same port hooks.
@@ -94,10 +100,11 @@ The dual-bus PT demo in the example is that story end-to-end: [DEMO_PT.md](examp
 | **Signals** | `sig` | Catalog ids, TLV codec, slot table — no RTOS/HAL |
 | **Modules** | `comp`, `store` | Descriptor registry, apply/poll; keyed blobs for save/load |
 | **Vehicle** | `vcom`, `vcom_diag` | CAN schedule + PHY seams; ISO-TP/UDS on top |
+| **Logging** | `aep_log` | Compile-gated Warn/Error (sparse Info); glue owns `aep_port_log` |
 | **Glue** | `examples/stm32_h5/` | USB CDC ↔ `ucp`, FDCAN/K-Line PHYs, demo components |
 | **Host** | `tools/` | Session, TUI, generators, UDS helpers |
 
-Portable code has no Cube HAL and no Azure RTOS. Example glue implements `ucp_port_*`, PHY vtables, and `store_port_*`. Product trees do the same.
+Portable code has no Cube HAL and no Azure RTOS. Example glue implements `ucp_port_*`, `aep_port_log`, PHY vtables, and `store_port_*`. Product trees do the same.
 
 ---
 
@@ -105,6 +112,7 @@ Portable code has no Cube HAL and no Azure RTOS. Example glue implements `ucp_po
 
 | Path | Role |
 | --- | --- |
+| [`aep_log/`](aep_log/README.md) | Shared log facade — `AEP_LOGW`/`E`, default level WARN |
 | [`sig/`](sig/README.md) | Tier A catalog, TLV codec, slot table |
 | [`ucp/`](ucp/README.md) | Frame, parser, session, port hooks |
 | [`ucp_tlm/`](ucp_tlm/README.md) | Telemetry app `0x20` / V1.0 |

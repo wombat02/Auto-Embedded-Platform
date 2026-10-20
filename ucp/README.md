@@ -11,6 +11,8 @@ Frame, byte parser, session, and port contract.
 
 Host/tests: `ucp_port_set_ops()` installs send/time/descriptor hooks. Firmware can leave ops NULL and override the weak `ucp_port_send_frame` / time / descriptors (see example `aep_ucp_port.c`).
 
+Logging uses shared [`aep_log`](../aep_log/README.md) (`AEP_LOGW`/`E` on session failures). `ucp_log.h` is a compatibility shim.
+
 Version encoding (major/minor): [docs/UCP_APPLICATION_LAYER.md](docs/UCP_APPLICATION_LAYER.md).
 
 Example: [examples/stm32_h5/README.md](../examples/stm32_h5/README.md) · [GLUE.md](../examples/stm32_h5/GLUE.md) · [BRINGUP.md](../examples/stm32_h5/BRINGUP.md).

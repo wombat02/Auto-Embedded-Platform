@@ -1,5 +1,8 @@
 #include "comp.h"
 
+#include "aep_log.h"
+
+#include <stdio.h>
 #include <string.h>
 
 void comp_runtime_init(comp_runtime_t *rt)
@@ -95,10 +98,12 @@ int comp_runtime_apply(comp_runtime_t *rt, const comp_slot_spec_t *specs, uint8_
 
 	if ((rt == NULL) || ((spec_count > 0u) && (specs == NULL)))
 	{
+		AEP_LOGW("comp: apply bad args");
 		return -1;
 	}
 	if ((ctx_ptrs == NULL) || (ctx_sizes == NULL) || (ctx_count < spec_count))
 	{
+		AEP_LOGW("comp: apply ctx mismatch");
 		return -1;
 	}
 
@@ -113,18 +118,28 @@ int comp_runtime_apply(comp_runtime_t *rt, const comp_slot_spec_t *specs, uint8_
 		size_t rt_cfg_len = 0u;
 		const void *cfg_ptr;
 		size_t cfg_len;
+		char msg[56];
 
 		desc = comp_runtime_find_desc(rt, specs[i].comp_id);
 		if (desc == NULL)
 		{
+			(void)snprintf(msg, sizeof(msg), "comp: unknown id=0x%02X skipped",
+						   (unsigned)specs[i].comp_id);
+			AEP_LOGW(msg);
 			continue;
 		}
 		if (ctx_ptrs[i] == NULL)
 		{
+			(void)snprintf(msg, sizeof(msg), "comp: null ctx id=0x%02X skipped",
+						   (unsigned)specs[i].comp_id);
+			AEP_LOGW(msg);
 			continue;
 		}
 		if (ctx_sizes[i] < desc->ctx_size)
 		{
+			(void)snprintf(msg, sizeof(msg), "comp: ctx small id=0x%02X skipped",
+						   (unsigned)specs[i].comp_id);
+			AEP_LOGW(msg);
 			continue;
 		}
 
@@ -152,6 +167,9 @@ int comp_runtime_apply(comp_runtime_t *rt, const comp_slot_spec_t *specs, uint8_
 			if (rt->materialize_cfg(specs[i].comp_id, slot->cfg, slot->cfg_len, rt_cfg,
 									sizeof(rt_cfg), &rt_cfg_len, rt->materialize_user) != 0)
 			{
+				(void)snprintf(msg, sizeof(msg), "comp: materialize fail id=0x%02X",
+							   (unsigned)specs[i].comp_id);
+				AEP_LOGW(msg);
 				continue;
 			}
 			cfg_ptr = rt_cfg;
@@ -160,6 +178,9 @@ int comp_runtime_apply(comp_runtime_t *rt, const comp_slot_spec_t *specs, uint8_
 
 		if ((desc->ops->start == NULL) || (desc->ops->start(slot->ctx, cfg_ptr, cfg_len) != 0))
 		{
+			(void)snprintf(msg, sizeof(msg), "comp: start fail id=0x%02X",
+						   (unsigned)specs[i].comp_id);
+			AEP_LOGW(msg);
 			slot->active = 0u;
 			rt->slot_count++;
 			continue;

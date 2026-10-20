@@ -8,7 +8,7 @@ This guide is RTOS-agnostic and MCU-family-agnostic. The portable core should re
 - `ucp_parser.*`
 - `ucp_session.*`
 - `ucp_port.h` + weak defaults in `ucp_port.c`
-- `ucp_log.h`
+- `ucp_log.h` (shim → `aep_log.h`)
 - `ucp_types.h`
 
 ## Platform Glue Responsibilities
@@ -19,7 +19,7 @@ This guide is RTOS-agnostic and MCU-family-agnostic. The portable core should re
 - Session packet dispatch (`ucp_session_on_packet`)
 - Session periodic tick (`ucp_session_tick`)
 - App descriptor/registry hooks
-- Logging sink
+- Logging sink: strong `aep_port_log` (see [`aep_log/docs/PORTING.md`](../../aep_log/docs/PORTING.md))
 
 ## Worker Loop Template
 
@@ -33,6 +33,6 @@ This guide is RTOS-agnostic and MCU-family-agnostic. The portable core should re
 1. Do not pass temporary/stack buffers to asynchronous DMA TX APIs.
 2. Keep one parser path and deterministic packet order.
 3. Reset parser/CAP transport guard state on restart paths.
-4. Enable verbose tracing only when needed; default to INFO-level logs.
+4. Enable verbose tracing only when needed; default `AEP_LOG_LEVEL` is WARN (sparse Info).
 5. **Time source:** `ucp_port_get_time_ms()` must be monotonic. Convert ticks with a 64-bit multiply (`(uint64_t)ticks * 1000 / ticks_per_sec`) unless the tick is already 1 ms. A 32-bit `ticks * 1000` overflows at ~71.6 minutes when the tick is 1 ms and forces a false session TIMEOUT. See `UCP_TIME_AND_TIMEOUTS.md`.
 6. Session timeouts must use unsigned elapsed time (`now - then`), not `now >= last + limit` in a way that assumes no wrap, and must not treat a backward jump as “still fresh”.

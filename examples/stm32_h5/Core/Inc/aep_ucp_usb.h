@@ -16,7 +16,7 @@
 void aep_ucp_usb_init(void);
 void aep_ucp_usb_poll(void);
 bool aep_ucp_usb_ready(void);
-/* True once host DTR — CDC must not carry ASCII logs (races forever OUT RX). */
+/* True after aep_ucp_usb_init — USBX thread runs UCP poll on this CDC. */
 bool aep_ucp_usb_owns_cdc(void);
 bool aep_ucp_usb_send_frame(const uint8_t *frame, uint16_t len);
 void aep_ucp_usb_log_stacks(void);
